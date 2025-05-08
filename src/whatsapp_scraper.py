@@ -1,4 +1,5 @@
 import time
+import logging
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -67,12 +68,56 @@ class WhatsAppScraper:
             })();
         """)
     
+    def extract_images_with_text(self):
+        return self.driver.execute_script("""
+        function getFollowingText(imgElement) {
+            // Walk through DOM to find the associated text
+            let container = imgElement.closest('.copyable-text');
+            if (!container) return "No text found";
+            
+            // Look for text in known WhatsApp structures
+            let textElement = container.querySelector('[data-testid="text"]') || 
+                            container.querySelector('.selectable-text') ||
+                            container.querySelector('.message-text');
+            
+            return textElement ? textElement.innerText : "No text found";
+        }
+
+        return Array.from(document.querySelectorAll('img[src^="blob:"]')).map(img => {
+            // Convert blob image to base64
+            let canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            let ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            
+            return {
+                dataUrl: canvas.toDataURL('image/png'),
+                text: getFollowingText(img),
+                element: img  // Include the actual DOM element
+            };
+        });
+        """)
+
     def get_message_text(self, img_element):
         try:
-            message_element = img_element.find_element(By.XPATH, "./ancestor::div[contains(@class, 'message')]")
-            return message_element.text if message_element else "No text found"
+            # Use JavaScript to get text since Selenium might have stale references
+            return self.driver.execute_script("""
+                function getText(img) {
+                    let container = img.closest('.copyable-text');
+                    if (!container) return "No text found";
+                    
+                    let textElement = container.querySelector('[data-testid="text"]') || 
+                                    container.querySelector('.selectable-text') ||
+                                    container.querySelector('.message-text');
+                    
+                    return textElement ? textElement.innerText : "No text found";
+                }
+                return getText(arguments[0]);
+            """, img_element)
         except Exception:
-            return "No text found"
+            return "No text found" 
+
     
     def close(self):
         if self.driver:

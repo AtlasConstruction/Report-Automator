@@ -31,8 +31,8 @@ def main():
         scraper.open_whatsapp_web()
         
         # Extract image data
-        image_data = scraper.extract_blob_images()
-        
+        # *** Remove this *** image_data = scraper.extract_blob_images()
+        image_data = scraper.extract_images_with_text()
         # Process images and text
         processed_data = []
         for idx, item in enumerate(image_data):
