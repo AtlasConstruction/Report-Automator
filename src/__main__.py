@@ -1,16 +1,12 @@
 import os
-import logging
+from logger import Logger
 from datetime import datetime
 from whatsapp_scraper import WhatsAppScraper
 from image_downloader import ImageDownloader
 from docx_writer import DocxWriter
 
 # Configure logging
-logging.basicConfig(
-    filename=os.path.join(os.path.dirname(__file__), '../logs/app.log'),
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+
 
 def main():
     try:
@@ -33,15 +29,17 @@ def main():
         # Extract image data
         # *** Remove this *** image_data = scraper.extract_blob_images()
         image_data = scraper.extract_images_with_text()
+        
         # Process images and text
         processed_data = []
         for idx, item in enumerate(image_data):
+     
             text = scraper.get_message_text(item['element'])
             processed_data.append({
                 'dataUrl': item['dataUrl'],
                 'text': text
             })
-            logging.info(f"Processed image {idx+1} with text: {text[:50]}...")
+            Logger.info(f"Processed image {idx+1} with text: {text[:50]}...")
         
         # Download images
         downloader = ImageDownloader(images_dir)
@@ -52,15 +50,17 @@ def main():
         writer.create_table(saved_images)
         writer.save(output_file)
         
-        logging.info(f"✅ Document successfully saved at {output_file}")
+        Logger.info(f"✅ Document successfully saved at {output_file}")
         print(f"✅ Document successfully saved at {output_file}")
         
     except Exception as e:
-        logging.error(f"❌ Error in main execution: {str(e)}", exc_info=True)
+        Logger.error(f"❌ Error in main execution: {str(e)}", exc_info=True)
         print(f"❌ An error occurred: {str(e)}")
         
     finally:
         scraper.close()
 
 if __name__ == "__main__":
+    Logger.start_logger()
+    Logger.info("Application started")
     main()
