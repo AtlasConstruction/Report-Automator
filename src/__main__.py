@@ -58,7 +58,17 @@ def main():
         print(f"❌ An error occurred: {str(e)}")
         
     finally:
+
         scraper.close()
+                # Delete all images in the images directory
+        try:
+            for file in os.listdir(images_dir):
+                file_path = os.path.join(images_dir, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            Logger.info("🧹 All images in the assets/images directory have been deleted.")
+        except Exception as cleanup_error:
+            Logger.error(f"⚠️ Error while cleaning up images: {str(cleanup_error)}")
 
 if __name__ == "__main__":
     Logger.start_logger()
