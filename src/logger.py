@@ -11,7 +11,7 @@ class Logger:
     
     def start_logger():
         logging.basicConfig(
-        filename=os.path.join(os.path.dirname(__file__), '../logs/app.log'),
+        filename=os.path.join(os.path.dirname(__file__), '../logs/whatsapp_scrapper.log'),
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
 )
