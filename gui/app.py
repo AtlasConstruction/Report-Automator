@@ -7,6 +7,7 @@ import io
 from PIL import Image
 from src.whatsapp_scraper import WhatsAppScraper
 from src.docx_writer import DocxWriter
+from gui.resource import setIcon
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -185,5 +186,7 @@ class MainWindow(tk.Tk):
 
 if __name__ == "__main__":
     app = MainWindow()
+    setIcon(app)
     app.protocol("WM_DELETE_WINDOW", app.on_closing)
-    app.mainloop()
+    
+    app.mainloop()  
