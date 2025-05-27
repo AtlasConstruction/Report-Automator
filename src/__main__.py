@@ -4,7 +4,7 @@ from datetime import datetime
 from whatsapp_scraper import WhatsAppScraper
 from image_downloader import ImageDownloader
 from docx_writer import DocxWriter
-
+from gui.resource import get_chromedriver_path
 # Configure logging
 
 
@@ -12,7 +12,7 @@ def main():
     try:
         # Initialize paths
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        driver_path = os.path.join(base_dir, 'drivers/chromedriver.exe')
+        driver_path = get_chromedriver_path()
         images_dir = os.path.join(base_dir, 'assets/images')
         output_dir = os.path.join(base_dir, 'output')
         
