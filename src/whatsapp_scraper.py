@@ -1,21 +1,48 @@
+import os
+import sys
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
+
+def get_resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        base_path = sys._MEIPASS  # PyInstaller-created temp folder
+    except AttributeError:
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    return os.path.join(base_path, relative_path)
+
 class WhatsAppScraper:
     def __init__(self, driver_path):
-        self.driver_path = driver_path
+        self.driver_path =  get_resource_path('drivers/chromedriver.exe')
         self.driver = None
     
     def initialize_driver(self):
         options = Options()
-        options.add_argument("--start-maximized")
-        self.driver = webdriver.Chrome(
-            service=Service(self.driver_path), 
-            options=options
-        )
+    
+        # Essential arguments to prevent crashes
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--remote-debugging-port=9222")
+        
+        # For headless operation (optional)
+        # options.add_argument("--headless=new")
+        
+        # Fix for PyInstaller temp directory
+        options.add_argument(f"--user-data-dir={os.path.join(os.getcwd(), 'chrome_profile')}")
+        
+        # Disable extensions and other potential issues
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-software-rasterizer")
+        options.add_argument("--disable-setuid-sandbox")
+        
+        service = Service(executable_path=self.driver_path)
+        self.driver = webdriver.Chrome(service=service, options=options)
     
     def open_whatsapp_web(self):
         self.driver.get("https://web.whatsapp.com")
