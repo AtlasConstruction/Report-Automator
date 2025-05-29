@@ -28,6 +28,8 @@ a = Analysis(
         'selenium.webdriver.common.by',
         'selenium.webdriver.chrome',
         'selenium.webdriver.chrome.service',
+        'selenium.webdriver.support.ui',
+        'selenium.webdriver.support.expected_conditions',
         'docx',
         'PIL',
         'imagehash'

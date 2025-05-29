@@ -8,7 +8,7 @@ from PIL import Image
 from src.whatsapp_scraper import WhatsAppScraper
 from src.docx_writer import DocxWriter
 from gui.resource import setIcon
-
+from src.image_downloader import ImageDownloader
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -134,43 +134,70 @@ class MainWindow(tk.Tk):
             self._reset_ui()
 
     def _perform_download(self, output_path):
-        try:
-            results = self.scraper.extract_images_with_text()
+            try:
+                results = self.scraper.extract_images_with_text()
 
-            if not results:
-                messagebox.showinfo("No Images", "No WhatsApp images were found.")
-                return
+                if not results:
+                    messagebox.showinfo("No Images", "No WhatsApp images were found.")
+                    return
 
-            doc_writer = DocxWriter()
-            data = []
+                doc_writer = DocxWriter()
+                data = []
 
-            temp_folder = "output/temp_images"
-            os.makedirs(temp_folder, exist_ok=True)
+                temp_folder = "output/temp_images"
+                os.makedirs(temp_folder, exist_ok=True)
 
-            for i, item in enumerate(results):
-                base64_data = item["dataUrl"].split(',')[1]
-                image_data = base64.b64decode(base64_data)
-                image_path = os.path.join(temp_folder, f"image_{i}.png")
+                downloader = ImageDownloader(temp_folder)
+                saved_images = downloader.save_images(results)
 
-                image = Image.open(io.BytesIO(image_data))
-                image.save(image_path)
+                doc_writer.create_table(saved_images)
+                doc_writer.save(output_path)
 
-                data.append({
-                    'path': image_path,
-                    'text': item['text']
-                })
+                messagebox.showinfo("Success", f"Scraping complete.\nFile saved to:\n{output_path}")
+                
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+            finally:
+                self._reset_ui()
+                if self.scraper:
+                    self.scraper.close()
+            try:
+                results = self.scraper.extract_images_with_text()
 
-            doc_writer.create_table(data)
-            doc_writer.save(output_path)
+                if not results:
+                    messagebox.showinfo("No Images", "No WhatsApp images were found.")
+                    return
 
-            messagebox.showinfo("Success", f"Scraping complete.\nFile saved to:\n{output_path}")
-            
-        except Exception as e:
-            messagebox.showerror("Error", str(e))
-        finally:
-            self._reset_ui()
-            if self.scraper:
-                self.scraper.close()
+                doc_writer = DocxWriter()
+                data = []
+
+                temp_folder = "output/temp_images"
+                os.makedirs(temp_folder, exist_ok=True)
+
+                for i, item in enumerate(results):
+                    base64_data = item["dataUrl"].split(',')[1]
+                    image_data = base64.b64decode(base64_data)
+                    image_path = os.path.join(temp_folder, f"image_{i}.png")
+
+                    image = Image.open(io.BytesIO(image_data))
+                    image.save(image_path)
+
+                    data.append({
+                        'path': image_path,
+                        'text': item['text']
+                    })
+
+                doc_writer.create_table(data)
+                doc_writer.save(output_path)
+
+                messagebox.showinfo("Success", f"Scraping complete.\nFile saved to:\n{output_path}")
+                
+            except Exception as e:
+                messagebox.showerror("Error", str(e))
+            finally:
+                self._reset_ui()
+                if self.scraper:
+                    self.scraper.close()
 
     def _reset_ui(self):
         self.status_label.config(text="Status: Ready")
